@@ -48,6 +48,15 @@ module.exports = {
         "brand-main": "linear-gradient(135deg, #6366F1 0%, #8B5CF6 55%, #22D3EE 100%)",
         "cta-hot": "linear-gradient(135deg, #4F46E5 0%, #8B5CF6 45%, #22D3EE 100%)",
       },
+      animation: {
+        "pulse-slow": "pulse-glow 2.8s ease-in-out infinite",
+      },
+      keyframes: {
+        "pulse-glow": {
+          "0%, 100%": { filter: "drop-shadow(0 0 8px rgba(124,248,255,0.45))" },
+          "50%":       { filter: "drop-shadow(0 0 18px rgba(124,248,255,0.85))" },
+        },
+      },
     },
   },
   plugins: [],

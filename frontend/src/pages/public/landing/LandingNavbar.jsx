@@ -27,7 +27,7 @@ export default function LandingNavbar({ navItems, activeSection, onNavClick, onO
       <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <BrandMark className="w-11 h-11 transition-all duration-300" />
+          <BrandMark className="w-12 h-12 drop-shadow-[0_0_10px_rgba(124,248,255,0.55)] animate-pulse-slow" />
           <span className="text-xl font-display font-bold tracking-tight text-white group-hover:text-electric-400 transition-colors">
             NexusOne
           </span>

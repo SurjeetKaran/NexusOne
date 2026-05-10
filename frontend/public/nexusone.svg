@@ -1,16 +1,31 @@
 <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="156" stroke="#4B5EAA" stroke-width="20"/>
-  <ellipse cx="256" cy="256" rx="178" ry="88" transform="rotate(-20 256 256)" stroke="#7C83FF" stroke-width="16"/>
-  <ellipse cx="256" cy="256" rx="178" ry="88" transform="rotate(40 256 256)" stroke="#67E8F9" stroke-opacity="0.85" stroke-width="12"/>
-  <path d="M176 334V178L336 334V178" stroke="url(#g)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M176 334V178L336 334V178" stroke="#A5B4FC" stroke-width="10" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="366" cy="200" r="16" fill="#67E8F9"/>
-  <circle cx="366" cy="200" r="28" fill="#67E8F9" fill-opacity="0.3"/>
+  <!-- Dark rounded background -->
+  <rect width="512" height="512" rx="96" fill="#070B14"/>
+  <rect width="512" height="512" rx="96" fill="url(#nexus-bg-glow)" fill-opacity="0.42"/>
+
+  <!-- Orbit rings -->
+  <circle cx="256" cy="256" r="156" stroke="#2D3D60" stroke-width="18"/>
+  <ellipse cx="256" cy="256" rx="178" ry="88" transform="rotate(-20 256 256)" stroke="#7C83FF" stroke-width="14"/>
+  <ellipse cx="256" cy="256" rx="178" ry="88" transform="rotate(40 256 256)" stroke="#67E8F9" stroke-opacity="0.7" stroke-width="10"/>
+
+  <!-- N mark -->
+  <path d="M176 334V178L336 334V178" stroke="url(#g)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M176 334V178L336 334V178" stroke="#A5B4FC" stroke-width="8" stroke-opacity="0.28" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Accent node -->
+  <circle cx="366" cy="200" r="14" fill="#67E8F9"/>
+  <circle cx="366" cy="200" r="24" fill="#67E8F9" fill-opacity="0.26"/>
+
   <defs>
     <linearGradient id="g" x1="166" y1="166" x2="352" y2="350" gradientUnits="userSpaceOnUse">
       <stop stop-color="#7CF8FF"/>
       <stop offset="0.55" stop-color="#7C83FF"/>
       <stop offset="1" stop-color="#A78BFA"/>
     </linearGradient>
+    <radialGradient id="nexus-bg-glow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#3346A1"/>
+      <stop offset="65%" stop-color="#0E1530"/>
+      <stop offset="100%" stop-color="#070B14"/>
+    </radialGradient>
   </defs>
 </svg>

@@ -43,12 +43,20 @@ const sharedChatRoutes = require("./routes/sharedChat");
 
 const app = express();
 
+// Production frontend URLs — always allowed regardless of env var config
+const PRODUCTION_ORIGINS = [
+  "https://nexusone-zraq.onrender.com",
+];
+
 function getAllowedOrigins() {
   const configured = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || "";
-  return configured
+  const fromEnv = configured
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
+
+  // Merge env-configured origins with hardcoded production origins (deduplicated)
+  return [...new Set([...PRODUCTION_ORIGINS, ...fromEnv])];
 }
 
 /* =====================================================
@@ -76,27 +84,29 @@ async function loadDynamicEnv() {
 /* =====================================================
    Middleware (SAFE BEFORE PASSPORT)
 ===================================================== */
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = getAllowedOrigins();
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = getAllowedOrigins();
 
-      // Allow non-browser clients (no Origin header) like Postman/curl.
-      if (!origin) return callback(null, true);
+    // Allow non-browser clients (no Origin header) like Postman/curl.
+    if (!origin) return callback(null, true);
 
-      // If no explicit origin is configured, keep local development usable.
-      if (!allowedOrigins.length) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    return callback(new Error(`CORS blocked: origin not allowed — ${origin}`));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200, // some browsers (IE11) choke on 204
+};
 
-      return callback(new Error("CORS blocked: origin not allowed"));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
-  })
-);
+// Handle preflight for all routes
+app.options("*", cors(corsOptions));
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 

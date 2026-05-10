@@ -7,8 +7,8 @@ const API = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
     (window.location.hostname === "localhost"
-      ? "http://localhost:10000"   // Dev
-      : ""),                       // Set VITE_API_URL in Render dashboard
+      ? "http://localhost:10000"                        // Dev
+      : "https://nexusone-backend-1d26.onrender.com"), // Production fallback
 });
 
 // Attach JWT token automatically if present

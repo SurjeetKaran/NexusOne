@@ -12,11 +12,37 @@ services:
       - key: PORT
         value: 10000
       - key: MONGO_URI
-        sync: false          # set manually in Render dashboard
+        sync: false
       - key: JWT_SECRET
-        sync: false          # set manually in Render dashboard
+        sync: false
       - key: FRONTEND_URL
-        sync: false          # set to your Render frontend URL after deploy
+        value: https://nexusone-zraq.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://nexusone-zraq.onrender.com
+      - key: GROQ_API_URL
+        value: https://api.groq.com/openai/v1/chat/completions
+      - key: GROQ_API_KEY
+        sync: false
+      - key: KEY_ENCRYPTION_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_EMAIL
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
     healthCheckPath: /
 
   # ── Frontend (Static Site) ────────────────────────────────────────────────
@@ -28,7 +54,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        sync: false          # set to your Render backend URL after deploy
+        value: https://nexusone-backend-1d26.onrender.com
     routes:
       - type: rewrite
         source: /*

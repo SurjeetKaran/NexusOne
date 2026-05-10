@@ -1,0 +1,274 @@
+Ai-Suite Platform Rulebook
+==========================
+Single source of truth for platform policy, limits, access control,
+and behavior enforced by backend runtime.
+
+Last updated: 2026-04-20
+
+
+--------------------------------------------------------------------------------
+SECTION 1 - ROLES
+--------------------------------------------------------------------------------
+
+Active roles:
+
+  user        Standard account created via signup or social auth.
+  admin       Owner-level account authenticated via configured admin credentials.
+
+Notes:
+  - No team role is enforced in current backend auth.
+  - User auth is token-based through verifyToken middleware.
+  - Admin-only routes use verifyAdminToken / verifyOwnerAdminOnly middleware.
+
+Admin credential resolution order at login:
+  1. global.SystemEnv.ADMIN_EMAIL / ADMIN_PASSWORD
+  2. process.env.ADMIN_EMAIL / ADMIN_PASSWORD
+  3. If no admin match, login flow continues as standard user login.
+
+
+--------------------------------------------------------------------------------
+SECTION 2 - PLANS AND SUBSCRIPTIONS
+--------------------------------------------------------------------------------
+
+Supported subscriptions:
+  Trial, Free, Pro, Super
+
+Signup behavior:
+  - selectedPlan accepts Trial or Free (case-insensitive).
+  - Default selectedPlan is Free.
+  - Trial sets trialStartDate and trialExpiryDate (48 hours).
+
+Automatic expiry handling:
+  - Cron at 00:10 server time checks plan expiry.
+  - Trial with expired trialExpiryDate is downgraded to Free.
+  - Pro with expired expiryDate is downgraded to Free.
+
+Manual upgrade behavior:
+  - User can submit Pro upgrade request through /auth/pro-upgrade/request.
+  - Admin reviews pending requests at /admin/pro-upgrade-requests.
+  - Approval upgrades user to Pro with default 30-day duration (or durationDays override).
+  - Rejection keeps current subscription unchanged.
+
+Super plan:
+  - Super exists as a supported subscription in policy and admin plan controls.
+  - The current user request endpoint is Pro-focused (manual Pro request path).
+
+
+--------------------------------------------------------------------------------
+SECTION 3 - PLAN LIMITS
+--------------------------------------------------------------------------------
+
+Base policy limits:
+
+Plan          Daily New Chats   Messages/Conversation   History Window
+----------    ---------------   ---------------------   --------------
+Trial         10                50                      Today only
+Free          10                10                      Today only
+Pro           20                50                      10 days
+Super         50                100                     30 days
+Admin         Unlimited         Unlimited               Unlimited
+
+Model selection cap on chat start:
+  Free  -> 1 model
+  Pro   -> up to 3 models
+  Trial -> unlimited
+  Super -> unlimited
+
+Message cost logic (used for per-conversation counter projection):
+  Free -> each send costs 1
+  Trial/Pro/Super -> each send costs activeModels.length (minimum 1)
+
+History filtering policy:
+  historyDays <= 1 -> start of current day
+  historyDays > 1  -> now - historyDays
+
+
+--------------------------------------------------------------------------------
+SECTION 4 - MODE POLICY
+--------------------------------------------------------------------------------
+
+Allowed modes:
+  study, content, career
+
+Rules:
+  - Mode must be valid for new chat creation.
+  - Existing conversation mode is locked and cannot be changed.
+  - If mode is omitted on follow-up message, locked conversation mode is reused.
+  - All modes are available across all subscription tiers.
+
+
+--------------------------------------------------------------------------------
+SECTION 5 - SMARTMIX GUARD RULES
+--------------------------------------------------------------------------------
+
+Guard executes before /smartmix/process:
+
+  1. activeModels must be present and non-empty after normalization.
+  2. activeModels count must be within plan selection cap.
+  3. New conversation must not exceed dailyNewChatLimit.
+  4. New conversation mode must be valid.
+  5. Existing conversationId must be a valid ObjectId.
+  6. Existing conversation must belong to requester.
+  7. Existing conversation mode must be valid and remain unchanged.
+  8. Existing activeModels must be subset of conversation.allowedModels.
+  9. Projected message count must remain within conversationMessageLimit.
+
+Downgrade edge case:
+  - If user is Free and tries to continue a historical multi-model conversation,
+    request is blocked with upgrade-required message.
+
+
+--------------------------------------------------------------------------------
+SECTION 6 - AI MODELS AND PROVIDER
+--------------------------------------------------------------------------------
+
+User-facing labels (default set):
+  nexusone, chatgpt, gemini, claude, deepseek
+
+Execution behavior:
+  - Provider is fixed to Groq (SINGLE_API.PROVIDER).
+  - Default fallback model identifier is llama-3.3-70b-versatile.
+  - Label-specific personality prompting differentiates outputs.
+
+Model registry source:
+  - SystemConfig key AVAILABLE_MODELS (array of { id, name }).
+  - Publicly available via GET /admin/system/models.
+  - Frontend can fall back to defaults if runtime config is empty.
+
+
+--------------------------------------------------------------------------------
+SECTION 7 - SHARED CHAT RULES
+--------------------------------------------------------------------------------
+
+Endpoints:
+  POST /chats/:conversationId/share  (auth required)
+  GET  /share/:shareId               (public)
+  DELETE /share/:shareId             (auth required)
+
+Rules:
+  - Only conversation owner can create or revoke link.
+  - Shared resource is read-only.
+  - Revocation disables link immediately (isActive=false behavior).
+  - Snapshot only includes conversation content needed for viewing.
+
+
+--------------------------------------------------------------------------------
+SECTION 8 - API KEY RULES
+--------------------------------------------------------------------------------
+
+  - Provider scope is single-provider Groq in current runtime.
+  - Key material is encrypted before storage.
+  - Supported key selection strategies include weighted, round_robin, failover.
+  - Key can be skipped when inactive, in cooldown, or over daily threshold.
+  - Daily usage counters reset at 00:00 server time.
+  - Cooldown is controlled by API_KEY_COOLDOWN_MINUTES.
+
+
+--------------------------------------------------------------------------------
+SECTION 9 - ACCESS CONTROL MATRIX
+--------------------------------------------------------------------------------
+
+Capability                          user    admin
+----------------------------------  ------  ------
+SmartMix chat processing            Yes     No
+View own history                    Yes     No
+Delete own history                  Yes     No
+Create share link                   Yes     No
+Revoke share link                   Yes     No
+Request Pro upgrade                 Yes     No
+View upgrade payment instructions   Yes     No
+Delete own account                  Yes     No
+Admin dashboard                     No      Yes
+User plan management                No      Yes
+Plan CRUD                           No      Yes
+Pro upgrade request review          No      Yes
+API key management                  No      Yes (owner only)
+System config management            No      Yes (owner only)
+Provider registry                   No      Yes (owner only)
+Full user usage dashboard           No      Yes (owner only)
+
+Public exceptions:
+  - GET /admin/plan
+  - GET /admin/system/models
+  - GET /share/:shareId
+  - OAuth start/callback routes under /auth
+
+
+--------------------------------------------------------------------------------
+SECTION 10 - AUTH RULES
+--------------------------------------------------------------------------------
+
+Signup:
+  - Requires name, email, password.
+  - selectedPlan must resolve to Trial or Free.
+  - Duplicate email is rejected.
+
+Login precedence:
+  1. Admin credential match (plain value comparison)
+  2. User lookup + bcrypt password compare
+  3. No user match returns user not found response
+
+Token behavior:
+  - Signup returns user token with 1-day expiration.
+  - Login returns user/admin token with 7-day expiration.
+  - JWT_SECRET is mandatory for token operations.
+
+Password reset:
+  - Forgot password creates token valid for 10 minutes.
+  - Reset link uses FRONTEND_URL (SystemConfig first, env fallback).
+  - SMTP settings are required for email delivery.
+
+Social OAuth:
+  - Google and GitHub routes are under /auth.
+  - Callback resolves/creates user and redirects to frontend social-auth route.
+
+
+--------------------------------------------------------------------------------
+SECTION 11 - RUNTIME CONFIG RULES
+--------------------------------------------------------------------------------
+
+Config resolution order:
+  1. global.SystemEnv loaded from SystemConfig at startup
+  2. process.env fallback
+
+Common SystemConfig keys:
+  ADMIN_EMAIL, ADMIN_PASSWORD
+  KEY_ENCRYPTION_SECRET
+  SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_EMAIL, SMTP_PASSWORD
+  GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+  GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+  FRONTEND_URL
+  PRO_UPGRADE_QR_IMAGE_URL, PRO_UPGRADE_UPI_ID
+  PRO_UPGRADE_PAYEE_NAME, PRO_UPGRADE_PAYMENT_NOTE
+  API_KEY_SELECTION_STRATEGY, API_KEY_COOLDOWN_MINUTES
+  AVAILABLE_MODELS
+
+Minimum required in environment:
+  MONGO_URI
+  JWT_SECRET
+  PORT
+
+
+--------------------------------------------------------------------------------
+SECTION 12 - SCHEDULED JOBS
+--------------------------------------------------------------------------------
+
+  00:00 daily -> Reset user daily counters (dailyQueryCount, dailyChatCount)
+  00:00 daily -> Reset API key usage counters (usedRequests, usedTokens)
+  00:10 daily -> Downgrade expired Trial/Pro subscriptions to Free
+
+
+--------------------------------------------------------------------------------
+SECTION 13 - BUSINESS SUMMARY
+--------------------------------------------------------------------------------
+
+  1. New users are Free unless Trial is selected.
+  2. Trial lasts 48 hours and auto-downgrades to Free.
+  3. Manual payment flow is implemented for Pro request submission/review.
+  4. Mode is locked per conversation lifecycle.
+  5. Model set is constrained by plan at conversation start and follow-ups.
+  6. Free users are single-model only.
+  7. Shared links are read-only and owner-revocable.
+  8. Provider runtime is single-provider Groq.
+  9. API keys must never be stored in plaintext.
+  10. Daily counters reset at midnight server time.

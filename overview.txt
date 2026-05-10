@@ -1,0 +1,102 @@
+Ai-Suite Platform Overview
+==========================
+Plain-English summary of what this platform does and how it behaves today.
+
+
+What is Ai-Suite?
+-----------------
+Ai-Suite is a multi-model AI workspace. A user writes one prompt and can
+receive responses from multiple AI personalities in parallel, compare them,
+and continue the conversation in the same thread.
+
+The platform supports three conversation modes:
+  - Study mode   -> teacher style, structured explanation
+  - Content mode -> copywriter style, publish-ready writing
+  - Career mode  -> practical coaching and roadmap guidance
+
+All three modes are available on all user plans.
+
+
+Typical user flow:
+------------------
+1. User signs up (Free by default, Trial optional).
+2. User starts a chat and selects mode + models.
+3. Backend validates limits based on plan.
+4. SmartMix sends model requests through Groq provider.
+5. User compares responses and continues the same conversation.
+6. User can generate a read-only public share link for any chat.
+
+
+Plans and limits:
+-----------------
+  Trial   10 new chats/day, 50 messages/conversation, all models selectable
+  Free    10 new chats/day, 10 messages/conversation, 1 model selectable
+  Pro     20 new chats/day, 50 messages/conversation, up to 3 models selectable
+  Super   50 new chats/day, 100 messages/conversation, all models selectable
+
+History visibility window:
+  Trial/Free -> today only
+  Pro        -> last 10 days
+  Super      -> last 30 days
+
+Trial expires after 48 hours and auto-downgrades to Free.
+Pro expiry is checked daily and expired Pro users auto-downgrade to Free.
+
+
+Upgrade flow (current runtime):
+-------------------------------
+Manual payment is used (QR/UPI, no payment gateway integration).
+
+User-side flow:
+1. Open upgrade status/instructions.
+2. Pay via QR/UPI.
+3. Submit transaction reference.
+
+Admin-side flow:
+1. Review pending request.
+2. Approve -> user is upgraded to Pro (default 30 days unless overridden).
+3. Reject -> no subscription change.
+
+Note: The request API is for Pro upgrade requests. Super can still be assigned
+by admin plan update tools.
+
+
+Roles:
+------
+  user    Can chat, view own history, share links, and request Pro upgrade.
+  admin   Platform owner controls dashboard, users, plans, keys, and config.
+
+No team role is active in backend authorization at this time.
+
+
+AI model architecture:
+----------------------
+User-facing labels include:
+  nexusone, chatgpt, gemini, claude, deepseek
+
+Execution backend:
+  - Provider is fixed to Groq.
+  - Default fallback model is llama-3.3-70b-versatile.
+  - Labels are differentiated by prompt/personality layer.
+
+
+Configuration model:
+--------------------
+Two layers (priority order):
+  1. SystemConfig loaded into global.SystemEnv at startup
+  2. process.env fallback
+
+Minimum required in .env:
+  MONGO_URI, JWT_SECRET, PORT
+
+
+Data stored in MongoDB:
+-----------------------
+Users, plans, query history, shared chat snapshots, upgrade requests,
+API keys, and dynamic system configuration.
+
+
+See also:
+---------
+- Detailed business and guard rules: rulebook.txt
+- Technical setup and route map: README.md

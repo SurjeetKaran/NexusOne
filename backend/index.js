@@ -104,7 +104,7 @@ const corsOptions = {
 };
 
 // Handle preflight for all routes
-app.options("*", cors(corsOptions));
+app.options("/{*path}", cors(corsOptions));
 
 app.use(cors(corsOptions));
 

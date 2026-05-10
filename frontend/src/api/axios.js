@@ -5,9 +5,10 @@ import log from "../utils/logger";
 
 const API = axios.create({
   baseURL:
-    window.location.hostname === "localhost"
-      ? "http://localhost:10000"  // Dev
-      : "https://ai-suite-9bvf.onrender.com", // Production
+    import.meta.env.VITE_API_URL ||
+    (window.location.hostname === "localhost"
+      ? "http://localhost:10000"   // Dev
+      : ""),                       // Set VITE_API_URL in Render dashboard
 });
 
 // Attach JWT token automatically if present

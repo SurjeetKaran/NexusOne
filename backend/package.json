@@ -5,11 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
+    "build": "npm install",
+    "start": "NODE_ENV=production node index.js",
     "dev": "nodemon index.js"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Surjeet Karan",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

@@ -47,3 +47,8 @@ tmp/
 
 # --- Backend specific ---
 uploads/
+
+# --- Sensitive files ---
+credentials.txt
+*.credentials
+secrets.txt

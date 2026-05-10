@@ -3,8 +3,9 @@ import React from "react";
 export default function BrandMark({ className = "" }) {
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`}>
-      <div className="pointer-events-none absolute inset-0 rounded-[22%] bg-electric-500/20 blur-[7px]" />
-      <div className="pointer-events-none absolute inset-[8%] rounded-[24%] bg-cyan-300/15 blur-[10px]" />
+      {/* Ambient glow layers — no background box */}
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-electric-500/20 blur-[8px]" />
+      <div className="pointer-events-none absolute inset-[10%] rounded-full bg-cyan-300/15 blur-[10px]" />
 
       <svg
         viewBox="0 0 512 512"
@@ -13,12 +14,12 @@ export default function BrandMark({ className = "" }) {
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
-        <rect width="512" height="512" rx="96" fill="#070B14" />
+        {/* No background rect — fully transparent */}
 
-        <rect width="512" height="512" rx="96" fill="url(#nexus-bg-glow)" fillOpacity="0.42" />
-
+        {/* Outer orbit ring */}
         <circle cx="256" cy="256" r="156" stroke="#2D3D60" strokeWidth="18" />
 
+        {/* Orbital ellipse 1 */}
         <ellipse
           cx="256"
           cy="256"
@@ -29,6 +30,7 @@ export default function BrandMark({ className = "" }) {
           strokeWidth="14"
         />
 
+        {/* Orbital ellipse 2 */}
         <ellipse
           cx="256"
           cy="256"
@@ -40,6 +42,7 @@ export default function BrandMark({ className = "" }) {
           strokeWidth="10"
         />
 
+        {/* N mark — gradient stroke */}
         <path
           d="M176 334V178L336 334V178"
           stroke="url(#nexus-brand-mark-gradient)"
@@ -48,15 +51,17 @@ export default function BrandMark({ className = "" }) {
           strokeLinejoin="round"
         />
 
+        {/* N mark — inner shimmer */}
         <path
           d="M176 334V178L336 334V178"
           stroke="#A5B4FC"
           strokeWidth="8"
-          strokeOpacity="0.24"
+          strokeOpacity="0.28"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
+        {/* Accent node */}
         <circle cx="366" cy="200" r="14" fill="#67E8F9" />
         <circle cx="366" cy="200" r="24" fill="#67E8F9" fillOpacity="0.26" />
 
@@ -66,11 +71,6 @@ export default function BrandMark({ className = "" }) {
             <stop offset="0.55" stopColor="#7C83FF" />
             <stop offset="1" stopColor="#A78BFA" />
           </linearGradient>
-          <radialGradient id="nexus-bg-glow" cx="50%" cy="50%" r="65%">
-            <stop offset="0%" stopColor="#3346A1" />
-            <stop offset="65%" stopColor="#0E1530" />
-            <stop offset="100%" stopColor="#070B14" />
-          </radialGradient>
         </defs>
       </svg>
     </div>
